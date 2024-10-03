@@ -1,5 +1,6 @@
 package com.TrungTinhFullStack.SpringBootFullCodeSecurity.Controller;
 
+import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Dto.ReqRes;
 import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Entity.User;
 import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Repository.UserRepository;
 import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Service.Jwt.JwtUtils;
@@ -33,28 +34,46 @@ public class AuthController {
     private WebSecurityConfig webSecurityConfig;
 
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody User user) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(user.getUsername(), user.getPassword()));
+    public ResponseEntity<ReqRes> authenticateUser(@RequestBody User user) {
+        User user1 = userRepository.findByUsername(user.getUsername());
+        ReqRes reqRes = new ReqRes();
+       Authentication authentication = authenticationManager.authenticate(
+               new UsernamePasswordAuthenticationToken(user.getUsername(),user.getPassword())
+       );
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
         String jwt = jwtUtils.generateJwtToken(user.getUsername());
-        return ResponseEntity.ok(jwt);
+
+        reqRes.setId(user1.getId());
+        reqRes.setUsername(user.getUsername());
+        reqRes.setRole(user1.getRole());
+        reqRes.setStatusCode(200L);
+        reqRes.setMessage("Login success !");
+        reqRes.setJwt(jwt);
+        return ResponseEntity.ok(reqRes);
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
+    public ResponseEntity<ReqRes> registerUser(@RequestBody User user) {
+        ReqRes reqRes = new ReqRes();
         if (userRepository.existsByUsername(user.getUsername())) {
-            return ResponseEntity.badRequest().body("Error: Username is already taken!");
+            reqRes.setStatusCode(500L);
+            reqRes.setMessage("Username is already taken with : " + user.getUsername());
+            return ResponseEntity.internalServerError().body(reqRes);
         }
 
-       User user1 = new User();
+        User user1 = new User();
         user1.setUsername(user.getUsername());
-        user1.setPassword(webSecurityConfig.passwordEncoder().encode(user.getPassword()));
-        user1.setRole("ROLE_USER");
+        user1.setPassword(webSecurityConfig.passwordEncoder().encode(user.getUsername()));
+        user1.setRole("USER");
 
         userRepository.save(user1);
 
-        return ResponseEntity.ok("User registered successfully!");
+        reqRes.setId(user1.getId());
+        reqRes.setUsername(user1.getUsername());
+        reqRes.setRole(user1.getRole());
+        reqRes.setStatusCode(200L);
+        reqRes.setMessage("Register success !");
+
+        return ResponseEntity.ok(reqRes);
     }
 }

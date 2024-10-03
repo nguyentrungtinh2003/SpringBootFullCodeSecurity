@@ -8,26 +8,27 @@ import java.util.Date;
 @Configuration
 public class JwtUtils {
 
-    private String JwtSecret = "465736458576485868659574649606854643543546575858";
+    private final String jwtSecret = "6749846554756555647383856554385648547565647565746577";
 
-    private int JwtExpiration = 86400000;
+    private final int jwtExpiration = 86400000;
 
     public String generateJwtToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date((new Date()).getTime() + JwtExpiration))
-                .signWith(SignatureAlgorithm.HS512,JwtSecret)
+                .setExpiration(new Date(new Date().getTime() + jwtExpiration))
+                .signWith(SignatureAlgorithm.HS512,jwtSecret)
                 .compact();
+
     }
 
     public String getUsernameFromJwtToken (String token) {
-        return Jwts.parser().setSigningKey(JwtSecret).parseClaimsJws(token).getBody().getSubject();
+        return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
     }
 
     public boolean validateJwtToken(String token) {
         try{
-            Jwts.parser().setSigningKey(JwtSecret).parseClaimsJws(token);
+           Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token);
             return true;
         }catch(Exception e) {
             return false;
