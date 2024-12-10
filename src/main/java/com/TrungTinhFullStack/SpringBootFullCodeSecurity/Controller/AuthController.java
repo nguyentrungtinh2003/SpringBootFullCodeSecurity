@@ -5,17 +5,16 @@ import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Entity.User;
 import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Repository.UserRepository;
 import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Service.Jwt.JwtUtils;
 import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Service.Jwt.WebSecurityConfig;
+import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -31,20 +30,22 @@ public class AuthController {
     private UserRepository userRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private WebSecurityConfig webSecurityConfig;
 
     @PostMapping("/login")
     public ResponseEntity<ReqRes> authenticateUser(@RequestBody User user) {
         User user1 = userRepository.findByUsername(user.getUsername());
         ReqRes reqRes = new ReqRes();
-       Authentication authentication = authenticationManager.authenticate(
-               new UsernamePasswordAuthenticationToken(user.getUsername(),user.getPassword())
-       );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String jwt = jwtUtils.generateJwtToken(user.getUsername());
+      Authentication authentication = authenticationManager.authenticate(
+              new UsernamePasswordAuthenticationToken(user1.getUsername(),user1.getPassword()));
+      SecurityContextHolder.getContext().setAuthentication(authentication);
+       String jwt = jwtUtils.generateJwtToken(user1.getUsername());
 
         reqRes.setId(user1.getId());
-        reqRes.setUsername(user.getUsername());
+        reqRes.setUsername(user1.getUsername());
         reqRes.setRole(user1.getRole());
         reqRes.setStatusCode(200L);
         reqRes.setMessage("Login success !");
@@ -74,6 +75,17 @@ public class AuthController {
         reqRes.setStatusCode(200L);
         reqRes.setMessage("Register success !");
 
+        return ResponseEntity.ok(reqRes);
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<ReqRes> getAllUserByPage(@RequestParam(defaultValue = "0") int page,
+                                                       @RequestParam(defaultValue = "5") int size) {
+        Page page1 = userService.getUserByPage(page,size);
+        ReqRes reqRes = new ReqRes();
+        reqRes.setStatusCode(200L);
+        reqRes.setData(page1);
+        reqRes.setMessage("Get user by page success !");
         return ResponseEntity.ok(reqRes);
     }
 }

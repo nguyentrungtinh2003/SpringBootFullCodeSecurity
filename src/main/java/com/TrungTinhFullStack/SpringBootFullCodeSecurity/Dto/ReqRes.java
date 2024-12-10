@@ -23,4 +23,6 @@ public class ReqRes {
 
     private String message;
 
+    private Object data;
+
 }

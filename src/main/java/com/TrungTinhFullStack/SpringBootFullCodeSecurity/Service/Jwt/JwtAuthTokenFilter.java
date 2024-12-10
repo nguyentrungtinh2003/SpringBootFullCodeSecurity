@@ -1,6 +1,7 @@
 package com.TrungTinhFullStack.SpringBootFullCodeSecurity.Service.Jwt;
 
 import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Service.UserDetailsServiceImpl;
+import com.TrungTinhFullStack.SpringBootFullCodeSecurity.Service.UserService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +29,7 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
         String jwt = parseJwt(request);
         if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
            String username = jwtUtils.getUsernameFromJwtToken(jwt);
-           UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     userDetails, null, userDetails.getAuthorities());
             SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -37,7 +38,7 @@ public class JwtAuthTokenFilter extends OncePerRequestFilter {
     }
 
     private String parseJwt(HttpServletRequest request) {
-        String header = request.getHeader("Authorization");
+       String header = request.getHeader("Authorization");
         if(header != null && header.startsWith("Bearer ")) {
             return header.substring(7);
         }
